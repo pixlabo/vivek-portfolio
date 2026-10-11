@@ -1,4 +1,4 @@
-document.documentElement.classList.add("js");
+document.documentElement.classList.add("js", "intro-open");
 
 /* ---------- Projects ----------
    Generated into videos/work/projects.js by tools/sync_videos.py from the Drive file names
@@ -520,3 +520,22 @@ if (finePointer) {
 } else {
   cursor.remove();
 }
+
+/* ---------- Intro: the click that switches sound on ----------
+   Browsers only play sound after a click/tap. Entering with sound unlocks the story music
+   (it then plays by itself in the Sound chapter) and turns on sound for hover previews. */
+const intro = $("#intro");
+function enterSite(withSound) {
+  unlockAudio();
+  soundMuted = !withSound;
+  updateSoundBtn();
+  const hoverSound = $("#soundToggle");
+  if (hoverSound && withSound !== previewSound) hoverSound.click();
+  if (withSound && soundWanted) startStorySound();
+  intro.classList.add("gone");
+  document.documentElement.classList.remove("intro-open");
+  setTimeout(() => intro.remove(), 900);
+}
+$("#introSound").addEventListener("click", () => enterSite(true));
+$("#introSkip").addEventListener("click", () => enterSite(false));
+$("#introSound").focus({ preventScroll: true });

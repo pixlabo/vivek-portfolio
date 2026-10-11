@@ -15,10 +15,25 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&family=Manrope:wght@400;500;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <noscript><style>.intro { display: none; }</style></noscript>
 </head>
 <body>
   <div class="grain" aria-hidden="true"></div>
   <div class="cursor" aria-hidden="true"><span>PLAY</span></div>
+
+  <!-- INTRO: one click here lets the browser play sound later while scrolling -->
+  <div class="intro" id="intro" role="dialog" aria-modal="true" aria-label="Enter the site">
+    <div class="intro-glow" aria-hidden="true"></div>
+    <div class="intro-inner">
+      <span class="intro-rec"><i></i>REC</span>
+      <div class="intro-name">Vivek <em>Chaudhary</em></div>
+      <button class="intro-play" id="introSound" aria-label="Enter with sound">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <span class="intro-label">Enter with sound</span>
+      <button class="intro-skip" id="introSkip">Continue without sound</button>
+    </div>
+  </div>
 
   <!-- NAV -->
   <header class="nav" id="nav">
