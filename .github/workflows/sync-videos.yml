@@ -1,0 +1,49 @@
+name: Sync videos from Drive
+
+# Checks the Drive folder in tools/config.json every 3 hours (and on the
+# "Run workflow" button), compresses new videos, removes deleted ones and
+# commits the result, which makes Vercel redeploy the site.
+on:
+  schedule:
+    - cron: "0 */3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-videos
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ffmpeg and gdown
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          pip install -q gdown==6.4.2
+
+      - name: Sync videos
+        run: python tools/sync_videos.py
+
+      - name: Commit changes
+        if: always()
+        run: |
+          git config user.name "pixlabo"
+          git config user.email "info@pixlabo.com"
+          git add -A videos
+          if git diff --cached --quiet; then
+            echo "No changes in Drive."
+            exit 0
+          fi
+          git commit -m "Sync videos from Drive"
+          git push

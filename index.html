@@ -225,7 +225,7 @@
       </div>
 
       <div class="player reveal" id="player">
-        <video id="reelVideo" src="videos/showreel.mp4" poster="videos/showreel-poster.jpg" preload="metadata" playsinline></video>
+        <video id="reelVideo" preload="metadata" playsinline></video>
         <button class="big-play" id="bigPlay" aria-label="Play showreel">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
         </button>
@@ -256,22 +256,7 @@
               <i class="clip gold" style="left:49%;width:9%">FX</i>
               <i class="clip gold" style="left:89.5%;width:9.5%">Logo</i>
             </div>
-            <div class="lane">
-              <i class="clip" style="left:0.0%;width:7.56%">Canada</i>
-              <i class="clip alt" style="left:7.56%;width:6.4%">Travel</i>
-              <i class="clip" style="left:13.95%;width:6.98%">FarmEasy</i>
-              <i class="clip alt" style="left:20.93%;width:7.56%">Podcast</i>
-              <i class="clip" style="left:28.49%;width:7.27%">Vrindavan</i>
-              <i class="clip alt" style="left:35.76%;width:6.4%">Omniaa</i>
-              <i class="clip" style="left:42.15%;width:6.98%">Canada</i>
-              <i class="clip alt" style="left:49.13%;width:6.98%">Advid</i>
-              <i class="clip" style="left:56.1%;width:6.98%">Moon</i>
-              <i class="clip alt" style="left:63.08%;width:6.98%">Travel</i>
-              <i class="clip" style="left:70.06%;width:7.56%">Podcast</i>
-              <i class="clip alt" style="left:77.62%;width:6.98%">Bloom</i>
-              <i class="clip" style="left:84.59%;width:7.27%">Vrindavan</i>
-              <i class="clip alt" style="left:91.86%;width:8.14%">Canada</i>
-            </div>
+            <div class="lane" id="laneV1"></div>
             <div class="lane"><i class="clip audio" style="left:0;width:100%"></i></div>
             <div class="lane">
               <i class="clip audio dim" style="left:10%;width:30%"></i>
@@ -317,6 +302,7 @@
     <div class="lb-meta"><b id="lbTitle"></b><span id="lbInfo"></span></div>
   </div>
 
+  <script src="videos/work/projects.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

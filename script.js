@@ -1,24 +1,14 @@
 document.documentElement.classList.add("js");
 
-/* ---------- Projects (files live in videos/work: <slug>.mp4, <slug>-preview.mp4, <slug>.jpg) ---------- */
-const projects = [
-  { slug: "canada",          title: "Canada",            tag: "Travel Film",  ratio: "16:9" },
-  { slug: "farmeasy",        title: "FarmEasy",          tag: "Brand Ad",     ratio: "9:16" },
-  { slug: "vrindavan",       title: "Vrindavan",         tag: "Travel Film",  ratio: "16:9" },
-  { slug: "omniaa",          title: "Omniaa Nights",     tag: "Event Promo",  ratio: "9:16" },
-  { slug: "podcast-intro",   title: "Podcast Intro",     tag: "Podcast",      ratio: "16:9" },
-  { slug: "advid",           title: "Advid",             tag: "Fashion Ad",   ratio: "9:16" },
-  { slug: "over-the-moon",   title: "Over the Moon",     tag: "Ad Film",      ratio: "16:9" },
-  { slug: "creator-talk",    title: "Creator Talk",      tag: "Reel",         ratio: "9:16" },
-  { slug: "travel-edit",     title: "Travel Edit",       tag: "Travel",       ratio: "16:9" },
-  { slug: "bloom",           title: "Bloom",             tag: "Fashion",      ratio: "16:9" },
-  { slug: "podcast-intro-2", title: "Podcast Intro II",  tag: "Podcast",      ratio: "16:9" },
-  { slug: "dress-code",      title: "Dress Code",        tag: "Fashion Reel", ratio: "16:9" },
-].map((p) => ({
+/* ---------- Projects ----------
+   Generated into videos/work/projects.js by tools/sync_videos.py from the Drive file names
+   ("01 - Title - Tag.mp4"). Each project has <slug>.mp4, <slug>-preview.mp4 and <slug>.jpg. */
+const DATA = window.PORTFOLIO || { projects: [], reel: null };
+const projects = DATA.projects.map((p) => ({
   ...p,
-  src: `videos/work/${p.slug}.mp4`,
-  preview: `videos/work/${p.slug}-preview.mp4`,
-  poster: `videos/work/${p.slug}.jpg`,
+  src: `videos/work/${p.slug}.mp4?v=${p.v}`,
+  preview: `videos/work/${p.slug}-preview.mp4?v=${p.v}`,
+  poster: `videos/work/${p.slug}.jpg?v=${p.v}`,
 }));
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -306,6 +296,17 @@ addEventListener("keydown", (e) => { if (e.key === "Escape" && !lb.hidden) close
 
 /* ---------- Showreel + timeline ---------- */
 const reel = $("#reelVideo");
+reel.poster = `videos/showreel-poster.jpg?v=${DATA.reel ? DATA.reel.v : 1}`;
+reel.src = `videos/showreel.mp4?v=${DATA.reel ? DATA.reel.v : 1}`;
+if (DATA.reel) {
+  const cuts = DATA.reel.cuts;
+  $("#laneV1").innerHTML = cuts.map((c, i) => {
+    const end = i + 1 < cuts.length ? cuts[i + 1].t : DATA.reel.duration;
+    const left = (c.t / DATA.reel.duration) * 100;
+    const width = ((end - c.t) / DATA.reel.duration) * 100;
+    return `<i class="clip${i % 2 ? " alt" : ""}" style="left:${left.toFixed(2)}%;width:${width.toFixed(2)}%">${c.label || pad(i + 1)}</i>`;
+  }).join("");
+}
 const player = $("#player");
 const timeline = $(".timeline");
 const lanes = $("#tlLanes");
