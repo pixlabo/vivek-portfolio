@@ -6,6 +6,8 @@ The Drive file names control the site:
     "01 - Canada - Travel Film.mp4"  -> position 1, title "Canada", tag "Travel Film"
     "00 - Showreel.mp4"              -> used in the Showreel section
 
+    "00 - Showreel Music.mp3"        -> music laid under the showreel
+
 Aspect ratio and baked-in black bars are detected automatically. New files are
 compressed into three web versions (poster, 6s hover preview, 720p), deleted files
 are removed, and renamed files only update their title / tag / position.
@@ -33,8 +35,10 @@ DATA_JS = WORK / "projects.js"
 CONFIG = ROOT / "tools" / "config.json"
 
 VIDEO_EXT = {".mp4", ".mov", ".m4v", ".webm", ".mkv"}
+AUDIO_EXT = {".mp3", ".wav", ".m4a", ".aac", ".ogg"}
 RATIOS = {"16:9": 16 / 9, "9:16": 9 / 16, "1:1": 1.0, "4:5": 4 / 5, "21:9": 21 / 9, "4:3": 4 / 3}
 REEL_TITLES = {"showreel", "show reel", "reel"}
+MUSIC_TITLES = {"showreel music", "show reel music", "reel music", "music"}
 
 
 def log(msg):
@@ -163,6 +167,16 @@ def detect_cuts(path, duration):
     return cuts[:40]
 
 
+def add_music(video, song, out, start=0.0):
+    """Lay a song under the reel: trimmed to the reel, faded in/out, loudness-normalised."""
+    dur = probe(video)["duration"]
+    fade_out = max(dur - 2.5, 0)
+    run(["ffmpeg", "-v", "error", "-y", "-i", str(video), "-ss", f"{start:.2f}", "-t", f"{dur:.2f}", "-i", str(song),
+         "-map", "0:v", "-map", "1:a", "-c:v", "copy",
+         "-af", f"afade=t=in:st=0:d=0.6,afade=t=out:st={fade_out:.2f}:d=2.5,loudnorm=I=-16:TP=-1.5:LRA=11",
+         "-ar", "48000", "-c:a", "aac", "-b:a", "128k", "-shortest", "-movflags", "+faststart", str(out)])
+
+
 # ---------- sources ----------
 
 def list_drive(folder):
@@ -220,6 +234,8 @@ def main():
         listing = list_drive(folder)
         fetch = lambda fid, name, dest: fetch_drive(fid, dest)
 
+    is_music = lambda name: Path(name).suffix.lower() in AUDIO_EXT and parse_name(name)[1].strip().lower() in MUSIC_TITLES
+    music_files = [(fid, name) for fid, name in listing if is_music(name)]
     listing = [(fid, name) for fid, name in listing if Path(name).suffix.lower() in VIDEO_EXT]
     log(f"Found {len(listing)} videos in the source folder.")
     is_reel = lambda name: parse_name(name)[1].strip().lower() in REEL_TITLES
@@ -278,13 +294,31 @@ def main():
                          str(VIDEOS / "showreel-poster.jpg")])
                     dur = probe(VIDEOS / "showreel.mp4")["duration"]
                     manifest["reel"] = {"id": fid, "v": short(fid), "duration": round(dur, 2),
+                                        "own_audio": meta["audio"],
                                         "cuts": [{"t": t} for t in detect_cuts(VIDEOS / "showreel.mp4", dur)]}
                     log(f"  ok -> showreel ({len(manifest['reel']['cuts'])} shots)")
                 except Exception as e:
                     failures += 1
                     log(f"  FAILED: {e}")
 
-    # 4. site data, ordered by the number in the file name
+        # 4. showreel music: replaces the reel's audio (unless the uploaded reel has its own sound)
+        reel = manifest.get("reel")
+        if music_files and reel and not reel.get("own_audio"):
+            fid, name = music_files[0]
+            if (reel.get("music") or {}).get("id") != fid:
+                log(f"+ showreel music: {name}")
+                try:
+                    song = fetch(fid, name, tmp / f"music{Path(name).suffix}")
+                    add_music(VIDEOS / "showreel.mp4", song, tmp / "reel-music.mp4")
+                    shutil.move(str(tmp / "reel-music.mp4"), VIDEOS / "showreel.mp4")
+                    reel["music"] = {"id": fid, "name": name, "start": 0}
+                    reel["v"] = short(reel.get("v", "") + fid)
+                    log("  ok -> music added to showreel")
+                except Exception as e:
+                    failures += 1
+                    log(f"  FAILED: {e}")
+
+    # 5. site data, ordered by the number in the file name
     def sort_key(entry):
         fid, it = entry
         order, title, tag, follows = parse_name(it["name"])

@@ -95,7 +95,7 @@ window.PORTFOLIO = {
   ],
   "reel": {
     "id": null,
-    "v": "montage1",
+    "v": "montage2",
     "duration": 34.4,
     "cuts": [
       {
@@ -154,6 +154,11 @@ window.PORTFOLIO = {
         "t": 31.6,
         "label": "Canada"
       }
-    ]
+    ],
+    "music": {
+      "id": null,
+      "name": "Driving Ambition (Mixkit)",
+      "start": 35.85
+    }
   }
 };
