@@ -1,4 +1,4 @@
-document.documentElement.classList.add("js", "intro-open");
+document.documentElement.classList.add("js");
 
 /* ---------- Projects ----------
    Generated into videos/work/projects.js by tools/sync_videos.py from the Drive file names
@@ -82,23 +82,26 @@ function storyProgress() {
   return Math.min(Math.max(-story.getBoundingClientRect().top / total, 0), 1);
 }
 
-/* Story sound: music plays only during the "Sound" chapter. Browsers allow audio only
-   after the visitor has clicked / tapped / pressed a key once, so until then the
-   chapter shows a "Tap for sound" button. */
+/* Story sound: music plays by default, only during the "Sound" chapter. It tries to play
+   straight away; browsers that still need a first click/tap get it on the visitor's
+   first click/tap anywhere on the page. */
 const storyAudio = new Audio();
 storyAudio.loop = true;
 storyAudio.preload = "none";
 const soundBtn = $("#storySound");
 const eqBars = $$("#storyEq u");
 let audioCtx, storyGain, analyser, freq;
-let soundWanted = false, soundMuted = false, justUnlocked = false, fadeTimer;
+let soundWanted = false, soundMuted = false, justUnlocked = false, autoplayBlocked = false, fadeTimer, volTimer;
+const STORY_SRC = "videos/story-sound.m4a";
 
 function unlockAudio() {
   if (audioCtx) { if (audioCtx.state === "suspended") audioCtx.resume(); return; }
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) return;
   audioCtx = new AC();
-  storyAudio.src = "videos/story-sound.m4a";
+  if (!storyAudio.src) storyAudio.src = STORY_SRC;
+  clearInterval(volTimer);
+  storyAudio.volume = 1;
   storyGain = audioCtx.createGain();
   storyGain.gain.value = 0;
   analyser = audioCtx.createAnalyser();
@@ -108,7 +111,8 @@ function unlockAudio() {
   audioCtx.createMediaElementSource(storyAudio).connect(storyGain).connect(analyser).connect(audioCtx.destination);
   // start the element inside this gesture so later play() calls are allowed (iOS)
   storyAudio.play().then(() => { if (!soundWanted || soundMuted) storyAudio.pause(); }).catch(() => {});
-  justUnlocked = true;
+  justUnlocked = autoplayBlocked; // a tap on the pill that only unlocked sound should not mute it
+  autoplayBlocked = false;
   setTimeout(() => (justUnlocked = false), 500);
   if (soundWanted) startStorySound();
   updateSoundBtn();
@@ -122,18 +126,41 @@ function fadeTo(target, secs) {
   g.linearRampToValueAtTime(target, now + secs);
 }
 
+// before the first click/tap there is no AudioContext: fade the element's own volume
+function rampVolume(target, done) {
+  clearInterval(volTimer);
+  const step = (target - storyAudio.volume) / 10;
+  volTimer = setInterval(() => {
+    const v = storyAudio.volume + step;
+    if ((step >= 0 && v >= target) || (step < 0 && v <= target)) {
+      storyAudio.volume = target; clearInterval(volTimer); if (done) done();
+    } else storyAudio.volume = v;
+  }, 50);
+}
+
 function startStorySound() {
-  if (!audioCtx || soundMuted) return;
+  if (soundMuted) return;
   clearTimeout(fadeTimer);
-  if (audioCtx.state === "suspended") audioCtx.resume();
-  storyAudio.play().then(() => { fadeTo(0.9, 0.6); drawEq(); }).catch(() => {});
+  if (audioCtx) {
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    storyAudio.play().then(() => { fadeTo(0.9, 0.6); drawEq(); }).catch(() => {});
+    return;
+  }
+  if (!storyAudio.src) storyAudio.src = STORY_SRC;
+  storyAudio.volume = 0;
+  storyAudio.play()
+    .then(() => { autoplayBlocked = false; rampVolume(0.9); updateSoundBtn(); })
+    .catch(() => { autoplayBlocked = true; updateSoundBtn(); }); // starts on the first click/tap
 }
 
 function stopStorySound() {
-  if (!audioCtx) return;
-  fadeTo(0, 0.5);
   clearTimeout(fadeTimer);
-  fadeTimer = setTimeout(() => { if (!soundWanted || soundMuted) storyAudio.pause(); }, 550);
+  if (audioCtx) {
+    fadeTo(0, 0.5);
+    fadeTimer = setTimeout(() => { if (!soundWanted || soundMuted) storyAudio.pause(); }, 550);
+  } else if (!storyAudio.paused) {
+    rampVolume(0, () => { if (!soundWanted || soundMuted) storyAudio.pause(); });
+  }
 }
 
 function setStorySound(want) {
@@ -144,7 +171,7 @@ function setStorySound(want) {
 }
 
 function updateSoundBtn() {
-  const state = !audioCtx ? "locked" : soundMuted ? "off" : "on";
+  const state = soundMuted ? "off" : autoplayBlocked && !audioCtx ? "locked" : "on";
   soundBtn.dataset.state = state;
   $("span", soundBtn).textContent = { locked: "Tap for sound", on: "Sound on", off: "Sound off" }[state];
 }
@@ -158,7 +185,7 @@ soundBtn.addEventListener("click", () => {
 
 // EQ bars follow the real music while it plays
 function drawEq() {
-  const live = soundWanted && !soundMuted && !storyAudio.paused;
+  const live = !!analyser && soundWanted && !soundMuted && !storyAudio.paused;
   $("#storyEq").classList.toggle("live", live);
   if (!live) return;
   analyser.getByteFrequencyData(freq);
@@ -317,8 +344,9 @@ grid.innerHTML = projects.map((p, i) => `
     <div class="info"><h3>${p.title}</h3><span>${p.tag}</span></div>
   </article>`).join("");
 
-// hover previews start muted; the Sound button (desktop) lets them play their original audio
-let previewSound = false;
+// hover previews play their original audio by default (muted only if the browser refuses);
+// the Sound button (desktop) switches it off
+let previewSound = true;
 
 $$(".card", grid).forEach((card) => {
   const p = projects[+card.dataset.i];
@@ -353,7 +381,7 @@ filters.innerHTML = `<button class="chip active" data-f="all">All</button>` + us
 
 if (finePointer) {
   filters.insertAdjacentHTML("beforeend", `
-    <button class="chip sound-toggle" id="soundToggle" aria-pressed="false" aria-label="Sound on hover previews">
+    <button class="chip sound-toggle on" id="soundToggle" aria-pressed="true" aria-label="Sound on hover previews">
       <svg class="i-muted" viewBox="0 0 24 24"><path d="M4 9v6h4l5 5V4L8 9H4zm12.6 3 2.7-2.7-1.4-1.4-2.7 2.7-2.7-2.7-1.4 1.4 2.7 2.7-2.7 2.7 1.4 1.4 2.7-2.7 2.7 2.7 1.4-1.4z"/></svg>
       <svg class="i-sound" viewBox="0 0 24 24"><path d="M4 9v6h4l5 5V4L8 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z"/></svg>
       <span>Sound</span>
@@ -520,22 +548,3 @@ if (finePointer) {
 } else {
   cursor.remove();
 }
-
-/* ---------- Intro: the click that switches sound on ----------
-   Browsers only play sound after a click/tap. Entering with sound unlocks the story music
-   (it then plays by itself in the Sound chapter) and turns on sound for hover previews. */
-const intro = $("#intro");
-function enterSite(withSound) {
-  unlockAudio();
-  soundMuted = !withSound;
-  updateSoundBtn();
-  const hoverSound = $("#soundToggle");
-  if (hoverSound && withSound !== previewSound) hoverSound.click();
-  if (withSound && soundWanted) startStorySound();
-  intro.classList.add("gone");
-  document.documentElement.classList.remove("intro-open");
-  setTimeout(() => intro.remove(), 900);
-}
-$("#introSound").addEventListener("click", () => enterSite(true));
-$("#introSkip").addEventListener("click", () => enterSite(false));
-$("#introSound").focus({ preventScroll: true });
