@@ -393,25 +393,6 @@ $$(".clip.audio").forEach((clip) => {
   }).join("");
 });
 
-/* ---------- Stats counter ---------- */
-const statsIO = new IntersectionObserver((entries) => {
-  entries.forEach(({ target, isIntersecting }) => {
-    if (!isIntersecting) return;
-    statsIO.unobserve(target);
-    $$("b[data-count]", target).forEach((b) => {
-      const end = +b.dataset.count;
-      const start = performance.now();
-      const run = (now) => {
-        const p = Math.min((now - start) / 1600, 1);
-        b.textContent = Math.round(end * (1 - Math.pow(1 - p, 3))) + b.dataset.suffix;
-        if (p < 1) requestAnimationFrame(run);
-      };
-      requestAnimationFrame(run);
-    });
-  });
-}, { threshold: 0.4 });
-statsIO.observe($("#stats"));
-
 /* ---------- Reveal on scroll ---------- */
 const revealIO = new IntersectionObserver((entries) => {
   entries.forEach(({ target, isIntersecting }) => {

@@ -797,26 +797,8 @@ h2 { font-size: clamp(2.5rem, 5.4vw, 4.8rem); line-height: 1; font-weight: 800; 
   clip-path: polygon(0 0, 100% 0, 100% 55%, 50% 100%, 0 55%);
 }
 
-/* ---------- Stats ---------- */
-.stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border-block: 1px solid var(--line);
-  margin: 0 var(--gutter);
-}
-.stats div { padding: 54px 20px; text-align: center; border-right: 1px solid var(--line); }
-.stats div:last-child { border-right: 0; }
-.stats b {
-  display: block;
-  font: 800 clamp(2.4rem, 5vw, 4rem) var(--display);
-  line-height: 1;
-  background: linear-gradient(120deg, var(--violet-2), var(--gold));
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-}
-.stats span { display: block; margin-top: 12px; font: 500 .75rem var(--mono); letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
-
 /* ---------- Contact ---------- */
-.contact { padding: 170px var(--gutter) 150px; text-align: center; overflow: hidden; }
+.contact { padding: 90px var(--gutter) 150px; text-align: center; overflow: hidden; }
 .contact-glow {
   position: absolute; inset: 0; z-index: -1;
   background:
@@ -898,9 +880,6 @@ h2 { font-size: clamp(2.5rem, 5.4vw, 4.8rem); line-height: 1; font-weight: 800; 
   .chapter p { margin-top: 12px; font-size: .98rem; }
   .ch-num { margin-bottom: 12px; }
   .story-steps { margin-top: 10px; }
-  .stats { grid-template-columns: repeat(2, 1fr); }
-  .stats div:nth-child(2) { border-right: 0; }
-  .stats div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
 }
 @media (max-width: 600px) {
   .formats, .work, .reel { padding-top: 90px; padding-bottom: 90px; }
@@ -939,8 +918,7 @@ h2 { font-size: clamp(2.5rem, 5.4vw, 4.8rem); line-height: 1; font-weight: 800; 
   .tl-body { grid-template-columns: 26px 1fr; gap: 6px; }
   .tl-labels, .tl-lanes { grid-template-rows: 20px repeat(4, 28px); }
   .clip { font-size: 0; padding: 0 3px; }
-  .stats div { padding: 36px 10px; }
-  .contact { padding: 120px var(--gutter) 110px; }
+  .contact { padding: 60px var(--gutter) 110px; }
   .btn-lg { padding: 1em 1.6em; font-size: .95rem; }
 }
 
