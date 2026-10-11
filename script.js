@@ -1,21 +1,25 @@
 document.documentElement.classList.add("js");
 
-/* ---------- Your projects (swap src with your own files in /videos) ---------- */
+/* ---------- Projects (files live in videos/work: <slug>.mp4, <slug>-preview.mp4, <slug>.jpg) ---------- */
 const projects = [
-  { title: "Night Shift",  tag: "Commercial",  ratio: "16:9", src: "videos/rain-night.mp4" },
-  { title: "Solo",         tag: "Dance Film",  ratio: "9:16", src: "videos/dancer.mp4" },
-  { title: "Tidal",        tag: "Travel",      ratio: "21:9", src: "videos/waves.mp4" },
-  { title: "Brew",         tag: "Product Ad",  ratio: "4:5",  src: "videos/coffee.mp4" },
-  { title: "Loud",         tag: "Concert",     ratio: "1:1",  src: "videos/rock.mp4" },
-  { title: "Overpass",     tag: "Reel",        ratio: "9:16", src: "videos/highway.mp4" },
-  { title: "Crew",         tag: "Music Video", ratio: "16:9", src: "videos/dance-crew.mp4" },
-  { title: "Turquoise",    tag: "Brand Film",  ratio: "4:3",  src: "videos/turquoise.mp4" },
-  { title: "Neon Miles",   tag: "Trailer",     ratio: "21:9", src: "videos/city-drive.mp4" },
-  { title: "Kickflip",     tag: "Sports",      ratio: "9:16", src: "videos/skate.mp4" },
-  { title: "Encore",       tag: "Event",       ratio: "4:5",  src: "videos/crowd.mp4" },
-  { title: "Live Set",     tag: "Music",       ratio: "1:1",  src: "videos/band.mp4" },
-  { title: "Afterhours",   tag: "Short Film",  ratio: "4:3",  src: "videos/city-drive.mp4" },
-];
+  { slug: "canada",          title: "Canada",            tag: "Travel Film",  ratio: "16:9" },
+  { slug: "farmeasy",        title: "FarmEasy",          tag: "Brand Ad",     ratio: "9:16" },
+  { slug: "vrindavan",       title: "Vrindavan",         tag: "Travel Film",  ratio: "16:9" },
+  { slug: "omniaa",          title: "Omniaa Nights",     tag: "Event Promo",  ratio: "9:16" },
+  { slug: "podcast-intro",   title: "Podcast Intro",     tag: "Podcast",      ratio: "16:9" },
+  { slug: "advid",           title: "Advid",             tag: "Fashion Ad",   ratio: "9:16" },
+  { slug: "over-the-moon",   title: "Over the Moon",     tag: "Ad Film",      ratio: "16:9" },
+  { slug: "creator-talk",    title: "Creator Talk",      tag: "Reel",         ratio: "9:16" },
+  { slug: "travel-edit",     title: "Travel Edit",       tag: "Travel",       ratio: "16:9" },
+  { slug: "bloom",           title: "Bloom",             tag: "Fashion",      ratio: "16:9" },
+  { slug: "podcast-intro-2", title: "Podcast Intro II",  tag: "Podcast",      ratio: "16:9" },
+  { slug: "dress-code",      title: "Dress Code",        tag: "Fashion Reel", ratio: "16:9" },
+].map((p) => ({
+  ...p,
+  src: `videos/work/${p.slug}.mp4`,
+  preview: `videos/work/${p.slug}-preview.mp4`,
+  poster: `videos/work/${p.slug}.jpg`,
+}));
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -212,11 +216,14 @@ addEventListener("resize", fitFrame);
 setRatio(0);
 
 /* ---------- Work grid ---------- */
+// Only a lazy poster image loads up front; the small preview clip loads on first hover,
+// and the full video only when the lightbox opens.
 const grid = $("#grid");
 grid.innerHTML = projects.map((p, i) => `
   <article class="card reveal" data-ratio="${p.ratio}" data-i="${i}" tabindex="0" aria-label="Play ${p.title}">
     <div class="media" style="--r:${p.ratio.replace(":", "/")}">
-      <video src="${p.src}#t=1" muted loop playsinline preload="metadata"></video>
+      <img src="${p.poster}" alt="${p.title}" loading="lazy" decoding="async">
+      <video muted loop playsinline preload="none"></video>
       <span class="badge">${p.ratio}</span>
       <span class="play-ic"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
     </div>
@@ -224,18 +231,34 @@ grid.innerHTML = projects.map((p, i) => `
   </article>`).join("");
 
 $$(".card", grid).forEach((card) => {
+  const p = projects[+card.dataset.i];
   const v = $("video", card);
   if (finePointer) {
-    card.addEventListener("mouseenter", () => { v.play().then(() => card.classList.add("playing")).catch(() => {}); });
-    card.addEventListener("mouseleave", () => { v.pause(); card.classList.remove("playing"); });
+    let hovering = false;
+    card.addEventListener("mouseenter", () => {
+      hovering = true;
+      if (!v.src) v.src = p.preview;
+      v.play().then(() => { if (hovering) card.classList.add("playing"); else v.pause(); }).catch(() => {});
+    });
+    card.addEventListener("mouseleave", () => {
+      hovering = false;
+      v.pause();
+      card.classList.remove("playing");
+    });
   }
-  const open = () => openLightbox(projects[+card.dataset.i]);
+  const open = () => openLightbox(p);
   card.addEventListener("click", open);
   card.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
 });
 
-$$(".chip").forEach((chip) => chip.addEventListener("click", () => {
-  $$(".chip").forEach((c) => c.classList.toggle("active", c === chip));
+// filter chips only for the ratios that actually exist in the work
+const filters = $("#filters");
+const usedRatios = [...new Set(projects.map((p) => p.ratio))];
+filters.innerHTML = `<button class="chip active" data-f="all">All</button>` + usedRatios.map((r) =>
+  `<button class="chip" data-f="${r}"><i class="shape" style="--r:${r.replace(":", "/")}"></i>${r}</button>`).join("");
+
+$$(".chip", filters).forEach((chip) => chip.addEventListener("click", () => {
+  $$(".chip", filters).forEach((c) => c.classList.toggle("active", c === chip));
   const f = chip.dataset.f;
   $$(".card", grid).forEach((c) => {
     const show = f === "all" || c.dataset.ratio === f;
@@ -253,6 +276,7 @@ function openLightbox(p) {
   const r = ratioNum(p.ratio);
   lbFrame.style.aspectRatio = p.ratio.replace(":", "/");
   lbFrame.style.width = `min(92vw, calc(78vh * ${r}))`;
+  lbVideo.poster = p.poster;
   lbVideo.src = p.src;
   $("#lbTitle").textContent = p.title;
   $("#lbInfo").textContent = `${p.tag.toUpperCase()} · ${p.ratio}`;
@@ -271,6 +295,7 @@ function closeLightbox() {
   setTimeout(() => {
     lb.hidden = true;
     lbVideo.removeAttribute("src");
+    lbVideo.removeAttribute("poster");
     lbVideo.load();
   }, 350);
 }

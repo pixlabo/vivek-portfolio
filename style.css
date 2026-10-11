@@ -636,7 +636,9 @@ h2 { font-size: clamp(2.5rem, 5.4vw, 4.8rem); line-height: 1; font-weight: 800; 
   border: 1px solid var(--line);
   transition: border-color .4s, box-shadow .4s;
 }
-.media video { width: 100%; height: 100%; object-fit: cover; transform: scale(1.01); transition: transform .9s cubic-bezier(.2, .7, .2, 1), filter .5s; filter: saturate(.85) brightness(.85); }
+.media img, .media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.01); transition: transform .9s cubic-bezier(.2, .7, .2, 1), filter .5s, opacity .4s; filter: saturate(.85) brightness(.85); }
+.media video { opacity: 0; }
+.card.playing .media video { opacity: 1; }
 .media::after {
   content: ""; position: absolute; inset: 0;
   background: linear-gradient(180deg, transparent 55%, rgba(7, 6, 11, .6));
@@ -662,7 +664,7 @@ h2 { font-size: clamp(2.5rem, 5.4vw, 4.8rem); line-height: 1; font-weight: 800; 
 }
 .play-ic svg { width: 22px; height: 22px; fill: currentColor; margin-left: 3px; }
 .card:hover .media, .card:focus-visible .media { border-color: rgba(183, 148, 255, .55); box-shadow: 0 24px 60px -24px rgba(139, 92, 246, .7); }
-.card:hover .media video, .card:focus-visible .media video { transform: scale(1.06); filter: none; }
+.card:hover .media img, .card:hover .media video, .card:focus-visible .media img, .card:focus-visible .media video { transform: scale(1.06); filter: none; }
 .card:hover .media::after { opacity: 0; }
 .card:hover .play-ic, .card:focus-visible .play-ic { transform: scale(1); opacity: 1; }
 .card.playing .play-ic { opacity: 0; transform: scale(.6); }
@@ -843,7 +845,7 @@ h2 { font-size: clamp(2.5rem, 5.4vw, 4.8rem); line-height: 1; font-weight: 800; 
   transition: transform .5s var(--ease);
 }
 .lightbox.open .lb-frame { transform: none; }
-.lb-frame video { width: 100%; height: 100%; object-fit: cover; }
+.lb-frame video { width: 100%; height: 100%; object-fit: contain; background: #000; }
 .lb-meta { display: flex; gap: 14px; align-items: baseline; }
 .lb-meta b { font: 700 1.1rem var(--display); }
 .lb-meta span { font: 500 .78rem var(--mono); color: var(--gold); letter-spacing: .08em; }
