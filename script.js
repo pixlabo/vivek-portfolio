@@ -82,6 +82,102 @@ function storyProgress() {
   return Math.min(Math.max(-story.getBoundingClientRect().top / total, 0), 1);
 }
 
+/* Story sound: music plays only during the "Sound" chapter. Browsers allow audio only
+   after the visitor has clicked / tapped / pressed a key once, so until then the
+   chapter shows a "Tap for sound" button. */
+const storyAudio = new Audio();
+storyAudio.loop = true;
+storyAudio.preload = "none";
+const soundBtn = $("#storySound");
+const eqBars = $$("#storyEq u");
+let audioCtx, storyGain, analyser, freq;
+let soundWanted = false, soundMuted = false, justUnlocked = false, fadeTimer;
+
+function unlockAudio() {
+  if (audioCtx) { if (audioCtx.state === "suspended") audioCtx.resume(); return; }
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return;
+  audioCtx = new AC();
+  storyAudio.src = "videos/story-sound.m4a";
+  storyGain = audioCtx.createGain();
+  storyGain.gain.value = 0;
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 128;
+  analyser.smoothingTimeConstant = 0.55;
+  freq = new Uint8Array(analyser.frequencyBinCount);
+  audioCtx.createMediaElementSource(storyAudio).connect(storyGain).connect(analyser).connect(audioCtx.destination);
+  // start the element inside this gesture so later play() calls are allowed (iOS)
+  storyAudio.play().then(() => { if (!soundWanted || soundMuted) storyAudio.pause(); }).catch(() => {});
+  justUnlocked = true;
+  setTimeout(() => (justUnlocked = false), 500);
+  if (soundWanted) startStorySound();
+  updateSoundBtn();
+}
+["pointerdown", "keydown", "touchend"].forEach((ev) => addEventListener(ev, unlockAudio, { passive: true }));
+
+function fadeTo(target, secs) {
+  const g = storyGain.gain, now = audioCtx.currentTime;
+  g.cancelScheduledValues(now);
+  g.setValueAtTime(g.value, now);
+  g.linearRampToValueAtTime(target, now + secs);
+}
+
+function startStorySound() {
+  if (!audioCtx || soundMuted) return;
+  clearTimeout(fadeTimer);
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  storyAudio.play().then(() => { fadeTo(0.9, 0.6); drawEq(); }).catch(() => {});
+}
+
+function stopStorySound() {
+  if (!audioCtx) return;
+  fadeTo(0, 0.5);
+  clearTimeout(fadeTimer);
+  fadeTimer = setTimeout(() => { if (!soundWanted || soundMuted) storyAudio.pause(); }, 550);
+}
+
+function setStorySound(want) {
+  if (want === soundWanted) return;
+  soundWanted = want;
+  want ? startStorySound() : stopStorySound();
+  updateSoundBtn();
+}
+
+function updateSoundBtn() {
+  const state = !audioCtx ? "locked" : soundMuted ? "off" : "on";
+  soundBtn.dataset.state = state;
+  $("span", soundBtn).textContent = { locked: "Tap for sound", on: "Sound on", off: "Sound off" }[state];
+}
+
+soundBtn.addEventListener("click", () => {
+  if (justUnlocked) return; // this tap just switched sound on
+  soundMuted = !soundMuted;
+  soundMuted ? stopStorySound() : startStorySound();
+  updateSoundBtn();
+});
+
+// EQ bars follow the real music while it plays
+function drawEq() {
+  const live = soundWanted && !soundMuted && !storyAudio.paused;
+  $("#storyEq").classList.toggle("live", live);
+  if (!live) return;
+  analyser.getByteFrequencyData(freq);
+  // mirrored: bass in the middle, highs towards both edges (boosted, they are quieter)
+  const mid = (eqBars.length - 1) / 2;
+  eqBars.forEach((bar, i) => {
+    const d = Math.abs(i - mid) / mid;
+    const raw = (freq[1 + Math.floor(d * 34)] / 255) * (0.85 + d * 0.9);
+    const v = Math.pow(Math.max(0, raw - 0.3) / 0.7, 1.5); // stretch the loud/quiet contrast
+    bar.style.transform = `scaleY(${Math.min(1, Math.max(0.06, v)).toFixed(3)})`;
+  });
+  requestAnimationFrame(drawEq);
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopStorySound();
+  else if (soundWanted) startStorySound();
+});
+
 function renderStory() {
   const p = storyProgress();
   const step = Math.min(STEPS - 1, Math.floor(p * STEPS));
@@ -110,6 +206,7 @@ function renderStory() {
   $("#monTag").textContent = stepInfo[step].tag;
   $("#stripLabel").textContent = stepInfo[step].label;
   $("#stripTime").textContent = stepInfo[step].time;
+  setStorySound(step === 3);
 }
 
 let storyTicking = false;
