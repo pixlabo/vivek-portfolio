@@ -220,15 +220,22 @@ grid.innerHTML = projects.map((p, i) => `
     <div class="info"><h3>${p.title}</h3><span>${p.tag}</span></div>
   </article>`).join("");
 
+// hover previews start muted; the Sound button (desktop) lets them play their original audio
+let previewSound = false;
+
 $$(".card", grid).forEach((card) => {
   const p = projects[+card.dataset.i];
   const v = $("video", card);
   if (finePointer) {
     let hovering = false;
+    const started = () => { if (hovering) card.classList.add("playing"); else v.pause(); };
     card.addEventListener("mouseenter", () => {
       hovering = true;
       if (!v.src) v.src = p.preview;
-      v.play().then(() => { if (hovering) card.classList.add("playing"); else v.pause(); }).catch(() => {});
+      v.muted = !previewSound;
+      if (previewSound) reel.pause();
+      // browsers can still refuse sound; fall back to a muted preview
+      v.play().then(started).catch(() => { v.muted = true; v.play().then(started).catch(() => {}); });
     });
     card.addEventListener("mouseleave", () => {
       hovering = false;
@@ -247,8 +254,23 @@ const usedRatios = [...new Set(projects.map((p) => p.ratio))];
 filters.innerHTML = `<button class="chip active" data-f="all">All</button>` + usedRatios.map((r) =>
   `<button class="chip" data-f="${r}"><i class="shape" style="--r:${r.replace(":", "/")}"></i>${r}</button>`).join("");
 
-$$(".chip", filters).forEach((chip) => chip.addEventListener("click", () => {
-  $$(".chip", filters).forEach((c) => c.classList.toggle("active", c === chip));
+if (finePointer) {
+  filters.insertAdjacentHTML("beforeend", `
+    <button class="chip sound-toggle" id="soundToggle" aria-pressed="false" aria-label="Sound on hover previews">
+      <svg class="i-muted" viewBox="0 0 24 24"><path d="M4 9v6h4l5 5V4L8 9H4zm12.6 3 2.7-2.7-1.4-1.4-2.7 2.7-2.7-2.7-1.4 1.4 2.7 2.7-2.7 2.7 1.4 1.4 2.7-2.7 2.7 2.7 1.4-1.4z"/></svg>
+      <svg class="i-sound" viewBox="0 0 24 24"><path d="M4 9v6h4l5 5V4L8 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z"/></svg>
+      <span>Sound</span>
+    </button>`);
+  const soundBtn = $("#soundToggle");
+  soundBtn.addEventListener("click", () => {
+    previewSound = !previewSound;
+    soundBtn.classList.toggle("on", previewSound);
+    soundBtn.setAttribute("aria-pressed", previewSound);
+  });
+}
+
+$$(".chip[data-f]", filters).forEach((chip) => chip.addEventListener("click", () => {
+  $$(".chip[data-f]", filters).forEach((c) => c.classList.toggle("active", c === chip));
   const f = chip.dataset.f;
   $$(".card", grid).forEach((c) => {
     const show = f === "all" || c.dataset.ratio === f;
@@ -263,6 +285,7 @@ const lbFrame = $("#lbFrame");
 const lbVideo = $("#lbVideo");
 
 function openLightbox(p) {
+  $$(".card video", grid).forEach((v) => v.pause());
   const r = ratioNum(p.ratio);
   lbFrame.style.aspectRatio = p.ratio.replace(":", "/");
   lbFrame.style.width = `min(92vw, calc(78vh * ${r}))`;
@@ -271,6 +294,7 @@ function openLightbox(p) {
   $("#lbTitle").textContent = p.title;
   $("#lbInfo").textContent = `${p.tag.toUpperCase()} · ${p.ratio}`;
   reel.pause();
+  lbVideo.muted = false;
   lb.hidden = false;
   requestAnimationFrame(() => lb.classList.add("open"));
   document.body.style.overflow = "hidden";

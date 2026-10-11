@@ -615,6 +615,16 @@ h2 { font-size: clamp(2.5rem, 5.4vw, 4.8rem); line-height: 1; font-weight: 800; 
   transition: all .3s;
 }
 .chip:hover { color: var(--text); border-color: rgba(183, 148, 255, .4); }
+.sound-toggle { margin-left: 6px; }
+.sound-toggle svg { width: 15px; height: 15px; fill: currentColor; }
+.sound-toggle .i-sound, .sound-toggle.on .i-muted { display: none; }
+.sound-toggle.on .i-sound { display: block; }
+.sound-toggle.on {
+  color: #1a1205;
+  background: linear-gradient(135deg, var(--gold-2), #f0b429);
+  border-color: transparent;
+  box-shadow: 0 8px 24px -8px rgba(242, 182, 50, .9);
+}
 .chip.active {
   color: #fff;
   background: linear-gradient(135deg, #a77bff, #7c3aed);
