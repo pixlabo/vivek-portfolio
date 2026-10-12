@@ -9,13 +9,6 @@ window.PORTFOLIO = {
       "v": "2b1ddfb1"
     },
     {
-      "slug": "farmeasy",
-      "title": "FarmEasy",
-      "tag": "Brand Ad",
-      "ratio": "9:16",
-      "v": "29bca768"
-    },
-    {
       "slug": "vrindavan",
       "title": "Vrindavan",
       "tag": "Travel Film",
@@ -44,20 +37,6 @@ window.PORTFOLIO = {
       "v": "06b3b5fd"
     },
     {
-      "slug": "over-the-moon",
-      "title": "Over the Moon",
-      "tag": "Ad Film",
-      "ratio": "16:9",
-      "v": "9f91cff6"
-    },
-    {
-      "slug": "creator-talk",
-      "title": "Creator Talk",
-      "tag": "Reel",
-      "ratio": "9:16",
-      "v": "7c88c22a"
-    },
-    {
       "slug": "travel-edit",
       "title": "Travel Edit",
       "tag": "Travel",
@@ -84,13 +63,6 @@ window.PORTFOLIO = {
       "tag": "Fashion Reel",
       "ratio": "16:9",
       "v": "9cbb6ab4"
-    },
-    {
-      "slug": "jfh",
-      "title": "JFH",
-      "tag": "",
-      "ratio": "9:16",
-      "v": "11e83d2c"
     }
   ],
   "reel": {

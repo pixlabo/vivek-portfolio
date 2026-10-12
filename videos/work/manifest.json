@@ -9,15 +9,6 @@
       "order": 1,
       "rev": 2
     },
-    "1ss1JLIhiCwVWFyVMWmggidvtVDb-CzVG": {
-      "slug": "farmeasy",
-      "name": "FarmEasy (16-Sep-26).mp4",
-      "ratio": "9:16",
-      "title": "FarmEasy",
-      "tag": "Brand Ad",
-      "order": 2,
-      "rev": 2
-    },
     "1jOTrQJClcSW0hAMnVb8YkPGfO_3vck8N": {
       "slug": "vrindavan",
       "name": "Vrindavan Edit.mp4",
@@ -54,24 +45,6 @@
       "order": 6,
       "rev": 2
     },
-    "19bHu5xNJZL5fcpzmet2DFRYDbtghJYa5": {
-      "slug": "over-the-moon",
-      "name": "Over the moon (29-Sep-26).mp4",
-      "ratio": "16:9",
-      "title": "Over the Moon",
-      "tag": "Ad Film",
-      "order": 7,
-      "rev": 2
-    },
-    "1w0reogb7C1UaHC7dJEmPv-aa0dNZa4LX": {
-      "slug": "creator-talk",
-      "name": "VID-20261011-WA0006.mp4",
-      "ratio": "9:16",
-      "title": "Creator Talk",
-      "tag": "Reel",
-      "order": 8,
-      "rev": 2
-    },
     "1EQwNdRZXAR95FWFR6XCHCxdKd1_wTggO": {
       "slug": "travel-edit",
       "name": "Travel Edit.mp4",
@@ -106,12 +79,6 @@
       "title": "Dress Code",
       "tag": "Fashion Reel",
       "order": 12,
-      "rev": 2
-    },
-    "1REjMWgCyh-Aw8JWWaP6q-pM5yiSBQiNu": {
-      "slug": "jfh",
-      "name": "JFH (04-Sep-26)-1.mp4",
-      "ratio": "9:16",
       "rev": 2
     }
   },
