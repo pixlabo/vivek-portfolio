@@ -2,13 +2,6 @@
 window.PORTFOLIO = {
   "projects": [
     {
-      "slug": "canada",
-      "title": "Canada",
-      "tag": "Travel Film",
-      "ratio": "16:9",
-      "v": "2b1ddfb1"
-    },
-    {
       "slug": "vrindavan",
       "title": "Vrindavan",
       "tag": "Travel Film",
