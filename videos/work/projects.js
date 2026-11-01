@@ -17,8 +17,8 @@ window.PORTFOLIO = {
     },
     {
       "slug": "vrindavan",
-      "title": "Vrindavan",
-      "tag": "Travel Film",
+      "title": "VRINDAVAN",
+      "tag": "Insta Edit",
       "ratio": "16:9",
       "v": "38e3d989"
     },
