@@ -5,8 +5,12 @@ The Drive file names control the site:
 
     "01 - Canada - Travel Film.mp4"  -> position 1, title "Canada", tag "Travel Film"
     "00 - Showreel.mp4"              -> used in the Showreel section
-
     "00 - Showreel Music.mp3"        -> music laid under the showreel
+
+The extension is optional. Drive's rename box selects the whole name, so a file
+renamed to "01 - Canada - Travel Film" (no ".mp4") is treated exactly like the one
+above. Whether a file is a video, a song or something else is decided by probing
+its content after download, never by its name.
 
 Aspect ratio and baked-in black bars are detected automatically. New files are
 compressed into three web versions (poster, 6s hover preview, 720p), deleted files
@@ -35,10 +39,21 @@ DATA_JS = WORK / "projects.js"
 CONFIG = ROOT / "tools" / "config.json"
 
 VIDEO_EXT = {".mp4", ".mov", ".m4v", ".webm", ".mkv"}
-AUDIO_EXT = {".mp3", ".wav", ".m4a", ".aac", ".ogg"}
+AUDIO_EXT = {".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac"}
+# Files that can sit next to the videos but are never a video: thumbnails, notes,
+# project files. Anything else (including names without an extension) is probed.
+IGNORE_EXT = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic", ".psd", ".ai", ".svg",
+              ".txt", ".md", ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".csv", ".json",
+              ".zip", ".rar", ".7z", ".prproj", ".aep", ".drp", ".srt", ".xml"}
+# Cover art embedded in audio files shows up in ffprobe as a "video" stream.
+PICTURE_CODECS = {"mjpeg", "png", "bmp", "gif", "tiff", "webp"}
 RATIOS = {"16:9": 16 / 9, "9:16": 9 / 16, "1:1": 1.0, "4:5": 4 / 5, "21:9": 21 / 9, "4:3": 4 / 3}
 REEL_TITLES = {"showreel", "show reel", "reel"}
 MUSIC_TITLES = {"showreel music", "show reel music", "reel music", "music"}
+
+
+class NotAVideo(Exception):
+    """The file has no real video stream (audio-only or another kind of media)."""
 
 
 def log(msg):
@@ -80,11 +95,30 @@ def slugify(text, taken):
     return slug
 
 
+def classify(name):
+    """'work' | 'reel' | 'music' | 'ignore', from the name alone. The content is checked after download."""
+    ext = Path(name).suffix.lower()
+    title = parse_name(name)[1].strip().lower()
+    if title in REEL_TITLES:
+        return "reel"
+    if title in MUSIC_TITLES and ext not in VIDEO_EXT:
+        return "music"
+    if ext in IGNORE_EXT or ext in AUDIO_EXT:
+        return "ignore"
+    return "work"
+
+
 # ---------- probing ----------
 
 def probe(path):
     info = json.loads(run(["ffprobe", "-v", "error", "-show_streams", "-show_format", "-of", "json", str(path)]).stdout)
-    video = next(s for s in info["streams"] if s.get("codec_type") == "video")
+    streams = info.get("streams", [])
+    video = next((s for s in streams if s.get("codec_type") == "video"
+                  and not s.get("disposition", {}).get("attached_pic")
+                  and s.get("codec_name") not in PICTURE_CODECS), None)
+    if video is None:
+        audio_only = any(s.get("codec_type") == "audio" for s in streams)
+        raise NotAVideo("audio only, no video stream" if audio_only else "no video or audio stream")
     w, h = int(video["width"]), int(video["height"])
     rotation = 0
     for sd in video.get("side_data_list", []):
@@ -96,7 +130,7 @@ def probe(path):
     num, den = (video.get("r_frame_rate") or "30/1").split("/")
     fps = float(num) / float(den or 1) if float(den or 1) else 30.0
     duration = float(info["format"].get("duration") or video.get("duration") or 0)
-    has_audio = any(s.get("codec_type") == "audio" for s in info["streams"])
+    has_audio = any(s.get("codec_type") == "audio" for s in streams)
     return {"w": w, "h": h, "fps": fps, "duration": duration, "audio": has_audio}
 
 
@@ -232,6 +266,9 @@ def main():
     WORK.mkdir(parents=True, exist_ok=True)
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8")) if MANIFEST.exists() else {"items": {}, "reel": None}
     items = manifest.setdefault("items", {})
+    # Files that were downloaded and turned out not to be videos; keyed by id so they
+    # are not downloaded again on every run. A rename makes us look at them again.
+    skipped = manifest.setdefault("skipped", {})
 
     if args.source_dir:
         listing = list_local(args.source_dir)
@@ -241,13 +278,13 @@ def main():
         listing = list_drive(folder)
         fetch = lambda fid, name, dest: fetch_drive(fid, dest)
 
-    is_music = lambda name: Path(name).suffix.lower() in AUDIO_EXT and parse_name(name)[1].strip().lower() in MUSIC_TITLES
-    music_files = [(fid, name) for fid, name in listing if is_music(name)]
-    listing = [(fid, name) for fid, name in listing if Path(name).suffix.lower() in VIDEO_EXT]
-    log(f"Found {len(listing)} videos in the source folder.")
-    is_reel = lambda name: parse_name(name)[1].strip().lower() in REEL_TITLES
-    reel_files = [(fid, name) for fid, name in listing if is_reel(name)]
-    work_files = [(fid, name) for fid, name in listing if not is_reel(name)]
+    groups = {"work": [], "reel": [], "music": [], "ignore": []}
+    for fid, name in listing:
+        groups[classify(name)].append((fid, name))
+    work_files, reel_files, music_files = groups["work"], groups["reel"], groups["music"]
+    for _, name in groups["ignore"]:
+        log(f"  ignoring {name} (not a video)")
+    log(f"Found {len(work_files)} videos, {len(reel_files)} showreel and {len(music_files)} music files in the source folder.")
     ids = {fid for fid, _ in work_files}
 
     # 1. removed from Drive -> remove from site
@@ -255,6 +292,8 @@ def main():
         log(f"- removed: {items[fid].get('name', fid)}")
         remove_files(items[fid]["slug"])
         del items[fid]
+    for fid in [f for f in skipped if f not in ids]:
+        del skipped[fid]
 
     failures = 0
     with tempfile.TemporaryDirectory() as tmp:
@@ -264,6 +303,8 @@ def main():
         for fid, name in work_files:
             if fid in items:
                 items[fid]["name"] = name
+                continue
+            if skipped.get(fid) == name:
                 continue
             log(f"+ new: {name}")
             try:
@@ -276,6 +317,9 @@ def main():
                 w, h = encode(src, meta, crop, WORK, slug)
                 items[fid] = {"slug": slug, "name": name, "ratio": nearest_ratio(w, h)}
                 log(f"  ok -> {slug} ({items[fid]['ratio']}{', bars cropped' if crop else ''})")
+            except NotAVideo as e:
+                skipped[fid] = name
+                log(f"  skipped: {e}")
             except Exception as e:  # keep going; one bad file should not block the rest
                 failures += 1
                 log(f"  FAILED: {e}")
@@ -347,6 +391,8 @@ def main():
     DATA_JS.write_text("// Generated by tools/sync_videos.py from the Drive file names. Do not edit by hand.\n"
                        "window.PORTFOLIO = " + json.dumps(data, indent=2, ensure_ascii=False) + ";\n",
                        encoding="utf-8")
+    if not skipped:
+        manifest.pop("skipped", None)
     MANIFEST.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     log(f"Site now has {len(projects)} videos.")
     return 1 if failures else 0

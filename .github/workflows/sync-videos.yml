@@ -1,12 +1,20 @@
 name: Sync videos from Drive
 
-# Checks the Drive folder in tools/config.json every 3 hours (and on the
-# "Run workflow" button), compresses new videos, removes deleted ones and
+# Runs as soon as the Drive watcher (tools/drive-watch.gs) reports a change in the
+# Drive folder, on the "Run workflow" button, when the sync tooling itself changes,
+# and once an hour as a fallback. It compresses new videos, removes deleted ones and
 # commits the result, which makes Vercel redeploy the site.
 on:
-  schedule:
-    - cron: "0 */3 * * *"
+  repository_dispatch:
+    types: [drive-changed]
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "tools/**"
+      - ".github/workflows/sync-videos.yml"
+  schedule:
+    - cron: "0 * * * *"
 
 permissions:
   contents: write
