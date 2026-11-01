@@ -71,6 +71,16 @@
       "tag": "Fashion Reel",
       "order": 12,
       "rev": 2
+    },
+    "1ss1JLIhiCwVWFyVMWmggidvtVDb-CzVG": {
+      "slug": "ai-ugc-reel",
+      "name": "02 - AI UGC REEL - Brand ad",
+      "ratio": "9:16"
+    },
+    "1bY6tNdIle2yqI9Mir889Bkxsd8wPaCiO": {
+      "slug": "travel-edit-2",
+      "name": "03 - TRAVEL EDIT - Travel film",
+      "ratio": "16:9"
     }
   },
   "reel": {

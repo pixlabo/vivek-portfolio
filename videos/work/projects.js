@@ -2,6 +2,20 @@
 window.PORTFOLIO = {
   "projects": [
     {
+      "slug": "ai-ugc-reel",
+      "title": "AI UGC REEL",
+      "tag": "Brand ad",
+      "ratio": "9:16",
+      "v": "7a1a68f7"
+    },
+    {
+      "slug": "travel-edit-2",
+      "title": "TRAVEL EDIT",
+      "tag": "Travel film",
+      "ratio": "16:9",
+      "v": "9d9422bc"
+    },
+    {
       "slug": "vrindavan",
       "title": "Vrindavan",
       "tag": "Travel Film",
