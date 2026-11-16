@@ -9,13 +9,6 @@ window.PORTFOLIO = {
       "v": "7a1a68f7"
     },
     {
-      "slug": "travel-edit-2",
-      "title": "TRAVEL EDIT",
-      "tag": "Travel film",
-      "ratio": "16:9",
-      "v": "9d9422bc"
-    },
-    {
       "slug": "vrindavan",
       "title": "VRINDAVAN",
       "tag": "Insta Edit",
@@ -30,6 +23,13 @@ window.PORTFOLIO = {
       "v": "a0e63cdd"
     },
     {
+      "slug": "advid",
+      "title": "AI FASHION REEL",
+      "tag": "Brand ad",
+      "ratio": "9:16",
+      "v": "06b3b5fd"
+    },
+    {
       "slug": "podcast-intro",
       "title": "Podcast Intro",
       "tag": "Podcast",
@@ -37,11 +37,11 @@ window.PORTFOLIO = {
       "v": "fcdd368d"
     },
     {
-      "slug": "advid",
-      "title": "Advid",
-      "tag": "Fashion Ad",
-      "ratio": "9:16",
-      "v": "06b3b5fd"
+      "slug": "dress-code",
+      "title": "AI FASHION REEL",
+      "tag": "Brand ad",
+      "ratio": "16:9",
+      "v": "9cbb6ab4"
     },
     {
       "slug": "travel-edit",
@@ -51,25 +51,11 @@ window.PORTFOLIO = {
       "v": "68838a38"
     },
     {
-      "slug": "bloom",
-      "title": "Bloom",
-      "tag": "Fashion",
-      "ratio": "16:9",
-      "v": "4c85a484"
-    },
-    {
       "slug": "podcast-intro-2",
       "title": "Podcast Intro II",
       "tag": "Podcast",
       "ratio": "16:9",
       "v": "f896ddba"
-    },
-    {
-      "slug": "dress-code",
-      "title": "Dress Code",
-      "tag": "Fashion Reel",
-      "ratio": "16:9",
-      "v": "9cbb6ab4"
     }
   ],
   "reel": {

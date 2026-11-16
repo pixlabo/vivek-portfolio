@@ -29,7 +29,7 @@
     },
     "1_p1_VGBQqtUXJ-djPEYKhhzNUyV2L1ux": {
       "slug": "advid",
-      "name": "VID-20261011-WA0004.mp4",
+      "name": "05 - AI FASHION REEL - Brand ad.mp4",
       "ratio": "9:16",
       "title": "Advid",
       "tag": "Fashion Ad",
@@ -45,15 +45,6 @@
       "order": 9,
       "rev": 2
     },
-    "1IqwlnnCKTLxUNgtKM-CjixSGZBY4ouau": {
-      "slug": "bloom",
-      "name": "VID-20261011-WA0002.mp4",
-      "ratio": "16:9",
-      "title": "Bloom",
-      "tag": "Fashion",
-      "order": 10,
-      "rev": 2
-    },
     "14LwyALeH_lbVhNu34Fn-qouyll8oP9sY": {
       "slug": "podcast-intro-2",
       "name": "Podcast Intro 2.mp4",
@@ -65,7 +56,7 @@
     },
     "1PBXdRZAVyMmdj1h83eue3rox5aKgTgGp": {
       "slug": "dress-code",
-      "name": "VID-20261011-WA0005.mp4",
+      "name": "06 - AI FASHION REEL - Brand ad.mp4",
       "ratio": "16:9",
       "title": "Dress Code",
       "tag": "Fashion Reel",
@@ -76,11 +67,6 @@
       "slug": "ai-ugc-reel",
       "name": "02 - AI UGC REEL - Brand ad.mp4",
       "ratio": "9:16"
-    },
-    "1bY6tNdIle2yqI9Mir889Bkxsd8wPaCiO": {
-      "slug": "travel-edit-2",
-      "name": "03 - TRAVEL EDIT - Travel film.mp4",
-      "ratio": "16:9"
     }
   },
   "reel": {
